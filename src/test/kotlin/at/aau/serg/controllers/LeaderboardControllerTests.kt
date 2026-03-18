@@ -29,8 +29,10 @@ class LeaderboardControllerTests {
         val second = GameResult(2, "second", 15, 10.0)
         val third = GameResult(3, "third", 10, 15.0)
 
+        // Return the results in unsorted order from the mocked service
         whenever(mockedService.getGameResults()).thenReturn(listOf(second, first, third))
 
+        // Call the controller without rank to get the full leaderboard
         val res: List<GameResult> = controller.getLeaderboard(null)
 
         verify(mockedService).getGameResults()
@@ -46,8 +48,10 @@ class LeaderboardControllerTests {
         val fastest = GameResult(2, "second", 20, 10.0)
         val middle = GameResult(3, "third", 20, 15.0)
 
+        // Return players with identical score but different times
         whenever(mockedService.getGameResults()).thenReturn(listOf(middle, slowest, fastest))
 
+        // Without rank, the complete sorted leaderboard should be returned
         val res: List<GameResult> = controller.getLeaderboard(null)
 
         verify(mockedService).getGameResults()
@@ -69,8 +73,10 @@ class LeaderboardControllerTests {
         val p8 = GameResult(8, "p8", 30, 17.0)
         val p9 = GameResult(9, "p9", 20, 18.0)
 
+        // Return the players in mixed order so the controller has to sort them first
         whenever(mockedService.getGameResults()).thenReturn(listOf(p9, p7, p5, p3, p1, p8, p6, p4, p2))
 
+        // Request rank 5 and expect the selected player plus up to 3 above and below
         val res: List<GameResult> = controller.getLeaderboard(5)
 
         verify(mockedService).getGameResults()
@@ -92,8 +98,10 @@ class LeaderboardControllerTests {
         val p4 = GameResult(4, "p4", 70, 13.0)
         val p5 = GameResult(5, "p5", 60, 14.0)
 
+        // Return the players in mixed order to verify sorting before window selection
         whenever(mockedService.getGameResults()).thenReturn(listOf(p5, p3, p1, p4, p2))
 
+        // Rank 1 has no players above it, so only the following ranks should be returned
         val res: List<GameResult> = controller.getLeaderboard(1)
 
         verify(mockedService).getGameResults()
@@ -112,8 +120,10 @@ class LeaderboardControllerTests {
         val p4 = GameResult(4, "p4", 70, 13.0)
         val p5 = GameResult(5, "p5", 60, 14.0)
 
+        // Return the players in mixed order to verify sorting before slicing the window
         whenever(mockedService.getGameResults()).thenReturn(listOf(p4, p2, p5, p1, p3))
 
+        // The last rank has no players below it, so only the previous ranks are included
         val res: List<GameResult> = controller.getLeaderboard(5)
 
         verify(mockedService).getGameResults()
@@ -130,6 +140,7 @@ class LeaderboardControllerTests {
 
         whenever(mockedService.getGameResults()).thenReturn(listOf(only))
 
+        // Rank 0 is invalid and should cause HTTP 400
         val ex = assertFailsWith<ResponseStatusException> {
             controller.getLeaderboard(0)
         }
@@ -145,6 +156,7 @@ class LeaderboardControllerTests {
 
         whenever(mockedService.getGameResults()).thenReturn(listOf(first, second))
 
+        // A rank larger than the leaderboard size is invalid
         val ex = assertFailsWith<ResponseStatusException> {
             controller.getLeaderboard(3)
         }
@@ -159,6 +171,7 @@ class LeaderboardControllerTests {
 
         whenever(mockedService.getGameResults()).thenReturn(listOf(only))
 
+        // Negative ranks are invalid and should cause HTTP 400
         val ex = assertFailsWith<ResponseStatusException> {
             controller.getLeaderboard(-1)
         }
