@@ -36,6 +36,14 @@ class LeaderboardController(
             throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid rank")
         }
 
-        return leaderboard;
+        // Convert the 1-based rank to a 0-based list index
+        val targetIndex = rank - 1
+
+        // Return the requested rank plus up to 3 players above and below
+        val startIndex = maxOf(0, targetIndex - 3)
+        val endIndex = minOf(leaderboard.lastIndex, targetIndex + 3)
+
+        // Return only the calculated leaderboard window
+        return leaderboard.subList(startIndex, endIndex + 1)
     }
 }
