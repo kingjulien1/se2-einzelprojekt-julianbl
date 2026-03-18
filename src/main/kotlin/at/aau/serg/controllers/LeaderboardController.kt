@@ -17,14 +17,8 @@ class LeaderboardController(
 
     @GetMapping
     fun getLeaderboard(@RequestParam(required = false) rank: Int? = null): List<GameResult> {
-        // Get all stored game results from the service
-        val leaderboard = gameResultService.getGameResults()
-            // Sort by score descending: higher score is better
-            .sortedWith(
-                compareByDescending<GameResult> { it.score }
-                    // For equal scores, shorter play time is better
-                    .thenBy { it.timeInSeconds }
-            )
+        // Get all stored game results from the service and sort them for the leaderboard
+        val leaderboard = sortLeaderboard(gameResultService.getGameResults())
 
         // If no rank is given, return the full leaderboard
         if (rank == null) {
@@ -45,5 +39,14 @@ class LeaderboardController(
 
         // Return only the calculated leaderboard window
         return leaderboard.subList(startIndex, endIndex + 1)
+    }
+
+    private fun sortLeaderboard(results: List<GameResult>): List<GameResult> {
+        return results.sortedWith(
+            // Sort by score descending: higher score is better
+            compareByDescending<GameResult> { it.score }
+                // For equal scores, shorter play time is better
+                .thenBy { it.timeInSeconds }
+        )
     }
 }
